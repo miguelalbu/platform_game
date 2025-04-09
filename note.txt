@@ -1,7 +1,22 @@
 pgzrun main.py
+Venv\Scripts\activate
+
 
 - Novo Personagem
 - Melhorar interface
 - Tecla "Esc" voltar para a interface/game
 - Plaformas quadradas / embaixo os inimigos podendo cair em cima da cabeça deles para matar
 - Sprites do personagem parado
+
+
+🎮 1. Para outras pessoas jogarem direto do navegador (sem instalar nada):
+Pygame Zero não roda nativamente no navegador, mas você pode:
+
+✅ Converter o jogo para Web usando:
+Pyodide + Pygbag: Ferramenta que transforma jogos feitos com Pygame/Pygame Zero em arquivos compatíveis com WebAssembly. Assim, você pode hospedar seu jogo em sites como:
+
+Itch.io (muito usado para jogos indie)
+
+GitHub Pages
+
+Netlify ou Vercel
