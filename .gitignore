@@ -1,2 +1,20 @@
-.txt
-.venv
+# Ambiente virtual
+venv/
+.venv/
+env/
+
+# Arquivos de cache e bytecode do Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Arquivos de configuração e IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Arquivos de distribuição e build
+dist/
+build/
+*.egg-info/
