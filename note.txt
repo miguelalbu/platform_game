@@ -1,0 +1,7 @@
+pgzrun main.py
+
+- Novo Personagem
+- Melhorar interface
+- Tecla "Esc" voltar para a interface/game
+- Plaformas quadradas / embaixo os inimigos podendo cair em cima da cabeça deles para matar
+- Sprites do personagem parado
