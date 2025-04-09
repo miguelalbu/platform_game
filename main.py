@@ -8,17 +8,17 @@ HEIGHT = 600
 game_state = "menu"
 
 # Menu
-button_start = Rect((WIDTH//2-100, 200), (200, 50))
-button_sound = Rect((WIDTH//2-100, 300), (200, 50))
-button_quit = Rect((WIDTH//2-100, 400), (200, 50))
+button_start = Rect((WIDTH // 2 - 100, 200), (200, 50))
+button_sound = Rect((WIDTH // 2 - 100, 300), (200, 50))
+button_quit = Rect((WIDTH // 2 - 100, 400), (200, 50))
 
 sound_enabled = True
 
 # Player
-player = Actor("player_idle", (100, 500))
+player = Actor("player_idle", (100, HEIGHT - 100))
 player.vx = 0
 player.vy = 0
-player.on_ground = False
+player.on_ground = True
 player.facing = "right"
 
 # Animação
@@ -34,15 +34,23 @@ WALK_SPEED = 4
 # Câmera
 camera_x = 0
 MAP_WIDTH = 3000
+GROUND_HEIGHT = HEIGHT - 50
+
+# Plataformas
+platforms = [
+    Rect((300, GROUND_HEIGHT - 100), (200, 20)),
+    Rect((600, GROUND_HEIGHT - 150), (150, 20)),
+    Rect((1000, GROUND_HEIGHT - 200), (250, 20)),
+]
 
 # Música
-music.set_volume(0.3)
+music.set_volume(0.2)
 if sound_enabled:
     music.play("background")
 
 def update_camera():
     global camera_x
-    target_x = player.x - WIDTH//2
+    target_x = player.x - WIDTH // 2
     camera_x = max(0, min(target_x, MAP_WIDTH - WIDTH))
 
 def draw():
@@ -54,7 +62,7 @@ def draw():
         draw_game()
 
 def draw_menu():
-    screen.draw.text("Platformer Game", center=(WIDTH//2, 100), fontsize=50, color="white")
+    screen.draw.text("Platformer Game", center=(WIDTH // 2, 100), fontsize=50, color="white")
     screen.draw.filled_rect(button_start, "dodgerblue")
     screen.draw.text("Start Game", center=button_start.center, color="white")
     screen.draw.filled_rect(button_sound, "green" if sound_enabled else "red")
@@ -63,19 +71,25 @@ def draw_menu():
     screen.draw.text("Exit", center=button_quit.center, color="white")
 
 def draw_game():
-    # Fundo
-    screen.fill((70, 70, 120))
+    screen.fill((70, 70, 120))  # Fundo
+
+    # Desenhar chão
+    screen.draw.filled_rect(Rect((0 - camera_x, GROUND_HEIGHT), (MAP_WIDTH, HEIGHT - GROUND_HEIGHT)), "green")
+    
+    # Desenhar plataformas
+    for plat in platforms:
+        draw_rect = Rect((plat.x - camera_x, plat.y), plat.size)
+        screen.draw.filled_rect(draw_rect, "brown")
     
     # Desenhar jogador
     draw_x = player.x - camera_x
     draw_y = player.y
-    player.pos = (draw_x, draw_y)  # Posição temporária para desenho
+    player.pos = (draw_x, draw_y)
     player.draw()
-    player.pos = (player.x, player.y)  # Restaura posição real
+    player.pos = (player.x, player.y)  # Restaura a posição original
 
 def update(dt):
     global game_state
-    
     if game_state == "game":
         update_player()
         update_camera()
@@ -91,23 +105,29 @@ def update_player():
         player.facing = "right"
     
     player.x += player.vx
+    player.x = max(10, min(player.x, MAP_WIDTH - 10))
     
     # Gravidade
     player.vy += GRAVITY
     player.y += player.vy
-    
-    # Limites do mapa
-    player.x = max(10, min(player.x, MAP_WIDTH - 10))
+    player.on_ground = False
 
-    # Verifica se está no chão (alcançou o limite inferior da tela)
-    if player.y >= HEIGHT - 60:  # valor ajustado para o sprite
-        player.y = HEIGHT - 60
+    # Verificar colisão com o chão
+    if player.y >= GROUND_HEIGHT - 30:
+        player.y = GROUND_HEIGHT - 30
         player.vy = 0
         player.on_ground = True
-    else:
-        player.on_ground = False
 
-    # Atualizar animação
+    # Verificar colisão com plataformas
+    player_rect = Rect((player.x - 15, player.y), (30, 60))  # Ajuste tamanho do jogador
+    for plat in platforms:
+        if player_rect.colliderect(plat) and player.vy >= 0:
+            if player_rect.bottom - player.vy < plat.top + 5:  # Colidindo por cima
+                player.y = plat.top - 60  # 60 é a altura do jogador
+                player.vy = 0
+                player.on_ground = True
+
+    # Animação
     update_animation()
 
 def update_animation():
@@ -123,15 +143,18 @@ def update_animation():
         else:
             player.image = "player_idle"
     
-    # Orientação
     player._flip_x = (player.facing == "left")
 
 def on_mouse_down(pos):
     global game_state, sound_enabled
-    
     if game_state == "menu":
         if button_start.collidepoint(pos):
             game_state = "game"
+            player.x = 100
+            player.y = GROUND_HEIGHT - 30
+            player.vx = 0
+            player.vy = 0
+            player.on_ground = True
         elif button_sound.collidepoint(pos):
             sound_enabled = not sound_enabled
             if sound_enabled:
