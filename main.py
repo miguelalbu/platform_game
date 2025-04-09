@@ -1,21 +1,21 @@
 import pgzrun
-from pygame import Rect
 
-WIDTH = 800
-HEIGHT = 600
+# Configurações da janela
+WIDTH = 1200
+HEIGHT = 800
 
 # Configurações do jogo
 game_state = "menu"
 
 # Menu
-button_start = Rect((WIDTH // 2 - 100, 200), (200, 50))
-button_sound = Rect((WIDTH // 2 - 100, 300), (200, 50))
-button_quit = Rect((WIDTH // 2 - 100, 400), (200, 50))
+button_start = Rect((WIDTH // 2 - 100, 300), (200, 50))
+button_sound = Rect((WIDTH // 2 - 100, 400), (200, 50))
+button_quit = Rect((WIDTH // 2 - 100, 500), (200, 50)) 
 
 sound_enabled = True
 
 # Player
-player = Actor("player_idle", (100, HEIGHT - 100))
+player = Actor("player_idle", (100, HEIGHT - 100)) 
 player.vx = 0
 player.vy = 0
 player.on_ground = True
@@ -33,7 +33,7 @@ WALK_SPEED = 4
 
 # Câmera
 camera_x = 0
-MAP_WIDTH = 3000
+MAP_WIDTH = 10000
 GROUND_HEIGHT = HEIGHT - 50
 
 # Plataformas
@@ -62,7 +62,7 @@ def draw():
         draw_game()
 
 def draw_menu():
-    screen.draw.text("Platformer Game", center=(WIDTH // 2, 100), fontsize=50, color="white")
+    screen.draw.text("Platformer Game", center=(WIDTH // 2, 150), fontsize=70, color="white")
     screen.draw.filled_rect(button_start, "dodgerblue")
     screen.draw.text("Start Game", center=button_start.center, color="white")
     screen.draw.filled_rect(button_sound, "green" if sound_enabled else "red")
@@ -71,7 +71,7 @@ def draw_menu():
     screen.draw.text("Exit", center=button_quit.center, color="white")
 
 def draw_game():
-    screen.fill((70, 70, 120))  # Fundo
+    screen.fill((70, 70, 120))
 
     # Desenhar chão
     screen.draw.filled_rect(Rect((0 - camera_x, GROUND_HEIGHT), (MAP_WIDTH, HEIGHT - GROUND_HEIGHT)), "green")
@@ -86,7 +86,7 @@ def draw_game():
     draw_y = player.y
     player.pos = (draw_x, draw_y)
     player.draw()
-    player.pos = (player.x, player.y)  # Restaura a posição original
+    player.pos = (player.x, player.y)
 
 def update(dt):
     global game_state
@@ -119,13 +119,25 @@ def update_player():
         player.on_ground = True
 
     # Verificar colisão com plataformas
-    player_rect = Rect((player.x - 15, player.y), (30, 60))  # Ajuste tamanho do jogador
+    player_rect = Rect((player.x - player.width // 2, player.y - player.height // 2), (player.width, player.height))
+
     for plat in platforms:
-        if player_rect.colliderect(plat) and player.vy >= 0:
-            if player_rect.bottom - player.vy < plat.top + 5:  # Colidindo por cima
-                player.y = plat.top - 60  # 60 é a altura do jogador
+        if player_rect.colliderect(plat):
+            # Colisão por cima
+            if player.vy > 0 and player_rect.bottom - player.vy < plat.top + 5:
+                player.y = plat.top - 60
                 player.vy = 0
                 player.on_ground = True
+            # Colisão por baixo
+            elif player.vy < 0 and player_rect.top - player.vy > plat.bottom - 5:
+                player.y = plat.bottom
+                player.vy = 0
+            # Colisão lateral esquerda
+            elif player.vx > 0 and player_rect.right - player.vx < plat.left + 5:
+                player.x = plat.left - 15
+            # Colisão lateral direita
+            elif player.vx < 0 and player_rect.left - player.vx > plat.right - 5:
+                player.x = plat.right + 15
 
     # Animação
     update_animation()
@@ -162,7 +174,7 @@ def on_mouse_down(pos):
             else:
                 music.stop()
         elif button_quit.collidepoint(pos):
-            exit()
+            quit()
 
 def on_key_down(key):
     if game_state == "game":
