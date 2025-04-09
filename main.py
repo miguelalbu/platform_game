@@ -35,14 +35,6 @@ WALK_SPEED = 4
 camera_x = 0
 MAP_WIDTH = 3000
 
-# Plataformas
-platforms = [
-    Rect(0, 500, MAP_WIDTH, 100),  # Chão principal
-    Rect(300, 400, 200, 20),
-    Rect(600, 300, 200, 20),
-    Rect(900, 400, 200, 20),
-]
-
 # Música
 music.set_volume(0.3)
 if sound_enabled:
@@ -73,13 +65,6 @@ def draw_menu():
 def draw_game():
     # Fundo
     screen.fill((70, 70, 120))
-    
-    # Desenhar plataformas
-    for platform in platforms:
-        screen.draw.filled_rect(
-            Rect(platform.x - camera_x, platform.y, platform.width, platform.height),
-            (100, 200, 80)
-        )
     
     # Desenhar jogador
     draw_x = player.x - camera_x
@@ -113,21 +98,15 @@ def update_player():
     
     # Limites do mapa
     player.x = max(10, min(player.x, MAP_WIDTH - 10))
-    
-    # Colisão com plataformas
-    player.on_ground = False
-    player_rect = Rect(player.x - 15, player.y - 30, 30, 60)  # Ajuste conforme seu sprite
-    
-    for platform in platforms:
-        platform_rect = Rect(platform.x, platform.y, platform.width, platform.height)
-        
-        if player_rect.colliderect(platform_rect):
-            # Colisão por cima
-            if player.vy > 0 and player_rect.bottom > platform_rect.top + 5:
-                player.y = platform_rect.top
-                player.vy = 0
-                player.on_ground = True
-    
+
+    # Verifica se está no chão (alcançou o limite inferior da tela)
+    if player.y >= HEIGHT - 60:  # valor ajustado para o sprite
+        player.y = HEIGHT - 60
+        player.vy = 0
+        player.on_ground = True
+    else:
+        player.on_ground = False
+
     # Atualizar animação
     update_animation()
 
