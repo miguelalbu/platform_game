@@ -10,22 +10,22 @@ MAP_WIDTH = 3000
 # Estado do jogo
 game_state = "menu"
 camera_x = 0
-music_on = True  # Estado da música
+music_on = True
 
 # Jogador
-player = Actor("player_idle", (100, HEIGHT - 100))
+player = Actor("player/player_idle", (100, HEIGHT - 100))
 player.vx = 0
 player.vy = 0
 player.on_ground = True
 player.facing = "right"
 
 # Animações de movimento
-player.walk_frames = ["player_walk1", "player_walk2"]
+player.walk_frames = ["player/player_walk1", "player/player_walk2"]
 player.walk_index = 0
 player.animation_timer = 0
 
 # Animação de idle dinâmica
-player.idle_frames = ["player_idle", "player_duck", "player_idle", "player_stand"]
+player.idle_frames = ["player/player_idle", "player/player_duck", "player/player_idle", "player/player_stand"]
 player.idle_index = 0
 player.idle_timer = 0
 player.idle_speed = 30  # velocidade da animação idle
@@ -130,7 +130,7 @@ def update_animation():
                 player.image = player.idle_frames[player.idle_index]
     else:
         # Pulo ou queda
-        player.image = "player_jump" if player.vy < 0 else "player_fall"
+        player.image = "player/player_jump" if player.vy < 0 else "player/player_fall"
 
     player._flip_x = (player.facing == "left")
 
@@ -146,7 +146,7 @@ def on_mouse_down(pos):
             player.vy = 0
             player.on_ground = True
             player.facing = "right"
-            player.image = "player_idle"
+            player.image = "player/player_idle"
         elif buttons["music"].collidepoint(pos):
             music_on = not music_on
             if music_on:
