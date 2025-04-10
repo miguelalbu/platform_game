@@ -1,12 +1,12 @@
 pgzrun main.py
 Venv\Scripts\activate
 
-
-- Novo Personagem
-- Melhorar interface
+- Mudar music background
+- Mudar sound jump
+- 2 Inimigos ou 3 se possível
+- Moedas durante o trajeto até o final
 - Tecla "Esc" voltar para a interface/game
 - Plaformas quadradas / embaixo os inimigos podendo cair em cima da cabeça deles para matar
-- Sprites do personagem parado
 
 
 🎮 1. Para outras pessoas jogarem direto do navegador (sem instalar nada):
