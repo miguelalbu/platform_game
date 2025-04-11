@@ -1,6 +1,5 @@
 import pgzrun
 from pygame import Rect
-import pygame
 
 # Configurações
 WIDTH = 800
@@ -12,6 +11,10 @@ MAP_WIDTH = 4000
 game_state = "menu"
 camera_x = 0
 music_on = True
+
+# Vida
+MAX_LIFE = 3
+life = MAX_LIFE
 
 # Jogador
 player = Actor("player/player_idle", (100, HEIGHT - 100))
@@ -68,15 +71,18 @@ spikes = [
 
 # Chaves colecionáveis
 keys = [
-    Actor("items/key", (250, HEIGHT - 170)),
-    Actor("items/key", (420, HEIGHT - 240)),
-    Actor("items/key", (720, HEIGHT - 320)),
-    Actor("items/key", (920, HEIGHT - 390)),
-    Actor("items/key", (1320, HEIGHT - 270)),
-    Actor("items/key", (1820, HEIGHT - 90)),
-    Actor("items/key", (2320, HEIGHT - 200)),
-    Actor("items/key", (2850, HEIGHT - 120))
+    Actor("items/key_plat", (250, HEIGHT - 170)),
+    Actor("items/key_plat", (420, HEIGHT - 240)),
+    Actor("items/key_plat", (720, HEIGHT - 320)),
+    Actor("items/key_plat", (920, HEIGHT - 390)),
+    Actor("items/key_plat", (1320, HEIGHT - 270)),
+    Actor("items/key_plat", (1820, HEIGHT - 90)),
+    Actor("items/key_plat", (2320, HEIGHT - 200)),
+    Actor("items/key_plat", (2850, HEIGHT - 120))
 ]
+for key in keys:
+    key.width *= 1.5
+    key.height *= 1.5
 
 collected_keys = 0
 TOTAL_KEYS = len(keys)
@@ -90,8 +96,7 @@ buttons = {
 
 def update_camera():
     global camera_x
-    camera_x = player.x - WIDTH // 2
-    camera_x = max(0, min(camera_x, MAP_WIDTH - WIDTH))
+    camera_x = max(0, min(player.x - WIDTH // 2, MAP_WIDTH - WIDTH))
 
 def draw():
     screen.clear()
@@ -106,14 +111,13 @@ def draw():
         screen.fill((50, 50, 80))
         screen.draw.filled_rect(Rect((0 - camera_x, HEIGHT - 50), (MAP_WIDTH, 50)), "green")
 
+        for plat in platforms:
+            screen.draw.filled_rect(Rect((plat.x - camera_x, plat.y), plat.size), "brown")
+
         original_enemy_x = enemy.x
         enemy.x -= camera_x
         enemy.draw()
         enemy.x = original_enemy_x
-
-        for plat in platforms:
-            plat_color = "brown"
-            screen.draw.filled_rect(Rect((plat.x - camera_x, plat.y), plat.size), plat_color)
 
         for spike in spikes:
             original_x = spike.x
@@ -124,87 +128,83 @@ def draw():
         for key in keys:
             if not hasattr(key, "collected") or not key.collected:
                 original_x = key.x
-                original_y = key.y
                 key.x -= camera_x
-                key_img = key._surf
-                scaled_img = pygame.transform.scale(key_img, (int(key.width * 1.8), int(key.height * 1.8)))
-                screen.blit(scaled_img, (key.x - scaled_img.get_width() // 2, key.y - scaled_img.get_height() // 2))
+                key.draw()
                 key.x = original_x
-                key.y = original_y
 
-        screen.blit(player.image, (player.x - player.width/2 - camera_x, player.y - player.height/2))
+        screen.blit(player.image, (player.x - player.width / 2 - camera_x, player.y - player.height / 2))
         screen.draw.text(f"Chaves: {collected_keys}/{TOTAL_KEYS}", topleft=(10, 10), fontsize=30, color="white")
 
+        for i in range(life):
+            screen.blit("items/heart", (10 + 40 * i, 50))
+
 def update():
-    global collected_keys, game_state
-    if game_state == "game":
-        if keyboard.left:
-            player.vx = -5
-            player.facing = "left"
-        elif keyboard.right:
-            player.vx = 5
-            player.facing = "right"
-        else:
-            player.vx = 0
+    global collected_keys, game_state, life
+    if game_state != "game":
+        return
 
-        if keyboard.up and player.on_ground:
-            player.vy = -15
-            player.on_ground = False
-            if hasattr(sounds, "jump"):
-                sounds.jump.play()
+    if keyboard.left:
+        player.vx = -5
+        player.facing = "left"
+    elif keyboard.right:
+        player.vx = 5
+        player.facing = "right"
+    else:
+        player.vx = 0
 
-        player.vy += 0.5
-        player.x += player.vx
-        player.y += player.vy
-        player.x = max(player.width/2, min(player.x, MAP_WIDTH - player.width/2))
+    if keyboard.up and player.on_ground:
+        player.vy = -15
+        player.on_ground = False
+        if hasattr(sounds, "jump"): sounds.jump.play()
 
-        if player.y > HEIGHT - 50 - player.height/2:
-            player.y = HEIGHT - 50 - player.height/2
-            player.vy = 0
-            player.on_ground = True
+    player.vy += 0.5
+    player.x += player.vx
+    player.y += player.vy
+    player.x = max(player.width/2, min(player.x, MAP_WIDTH - player.width/2))
 
-        player_rect = Rect((player.x - player.width/2, player.y - player.height/2), (player.width, player.height))
+    if player.y > HEIGHT - 50 - player.height / 2:
+        player.y = HEIGHT - 50 - player.height / 2
+        player.vy = 0
+        player.on_ground = True
 
-        for plat in platforms:
-            if player_rect.colliderect(plat) and player.vy > 0:
-                if player_rect.bottom - player.vy <= plat.top:
-                    player.y = plat.top - player.height/2
-                    player.vy = 0
-                    player.on_ground = True
+    player_rect = Rect((player.x - player.width / 2, player.y - player.height / 2), (player.width, player.height))
 
-        for spike in spikes:
-            spike_rect = Rect(spike.x - 20, spike.y, 40, 20)
-            if player_rect.colliderect(spike_rect):
-                if hasattr(sounds, "hit"):
-                    sounds.hit.play()
-                reset_player()
+    for plat in platforms:
+        if player_rect.colliderect(plat) and player.vy > 0:
+            if player_rect.bottom - player.vy <= plat.top:
+                player.y = plat.top - player.height / 2
+                player.vy = 0
+                player.on_ground = True
 
-        # Colisão com o zumbi
-        enemy_rect = Rect(enemy.x - 20, enemy.y - 40, 40, 80)
-        if player_rect.colliderect(enemy_rect):
-            if hasattr(sounds, "hit"):
-                sounds.hit.play()
-            reset_player()
+    for spike in spikes:
+        spike_rect = Rect(spike.x - 20, spike.y, 40, 20)
+        if player_rect.colliderect(spike_rect):
+            if hasattr(sounds, "hit"): sounds.hit.play()
+            lose_life()
+            return
 
-        for key in keys:
-            if not hasattr(key, "collected") or not key.collected:
-                key_rect = Rect((key.x - key.width/2, key.y - key.height/2), (key.width, key.height))
-                if player_rect.colliderect(key_rect):
-                    key.collected = True
-                    collected_keys += 1
-                    if hasattr(sounds, "coin"):
-                        sounds.coin.play()
+    enemy_rect = Rect(enemy.x - 20, enemy.y - 40, 40, 80)
+    if player_rect.colliderect(enemy_rect):
+        if hasattr(sounds, "hit"): sounds.hit.play()
+        lose_life()
+        return
 
-        # ✅ Tocar som de vitória
-        if collected_keys == TOTAL_KEYS and player.x >= MAP_WIDTH - 100:
-            print("Parabéns! Você coletou todas as chaves e finalizou o jogo!")
-            if hasattr(sounds, "win"):
-                sounds.win.play()
-            game_state = "menu"
+    for key in keys:
+        if not hasattr(key, "collected") or not key.collected:
+            key_rect = Rect((key.x - key.width / 2, key.y - key.height / 2), (key.width, key.height))
+            if player_rect.colliderect(key_rect):
+                key.collected = True
+                collected_keys += 1
+                if hasattr(sounds, "coin"): sounds.coin.play()
 
-        update_animation()
-        update_enemy()
-        update_camera()
+    if collected_keys == TOTAL_KEYS and player.x >= MAP_WIDTH - 100:
+        print("Parabéns! Você coletou todas as chaves e finalizou o jogo!")
+        if hasattr(sounds, "win"): sounds.win.play()
+        game_state = "menu"
+
+    update_animation()
+    update_enemy()
+    update_camera()
 
 def update_enemy():
     enemy.x += enemy.direction * enemy.speed
@@ -219,16 +219,30 @@ def update_enemy():
         enemy.image = enemy.walk_frames[enemy.walk_index]
     enemy._flip_x = enemy.flip_x
 
-def reset_player():
-    global collected_keys
+def reset_player_position():
     player.x = 100
     player.y = HEIGHT - 100
     player.vx = 0
     player.vy = 0
     player.on_ground = True
+
+def reset_game():
+    global collected_keys, life
+    life = MAX_LIFE
     collected_keys = 0
     for key in keys:
         key.collected = False
+    reset_player_position()
+
+def lose_life():
+    global life, game_state
+    life -= 1
+    if life <= 0:
+        print("Game Over!")
+        game_state = "menu"
+        reset_game()
+    else:
+        reset_player_position()
 
 def update_animation():
     if player.on_ground:
@@ -246,7 +260,6 @@ def update_animation():
                 player.image = player.idle_frames[player.idle_index]
     else:
         player.image = "player/player_jump" if player.vy < 0 else "player/player_fall"
-
     player._flip_x = (player.facing == "left")
 
 def on_mouse_down(pos):
@@ -254,7 +267,7 @@ def on_mouse_down(pos):
     if game_state == "menu":
         if buttons["start"].collidepoint(pos):
             game_state = "game"
-            reset_player()
+            reset_game()
             player.image = "player/player_idle"
         elif buttons["music"].collidepoint(pos):
             music_on = not music_on
@@ -270,7 +283,7 @@ def on_mouse_down(pos):
 def on_start():
     if music_on:
         music.play("background")
-        music.set_volume(0.3)
+        music.set_volume(0.2)
 
 on_start()
 pgzrun.go()
