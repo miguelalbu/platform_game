@@ -115,7 +115,6 @@ def draw():
             plat_color = "brown"
             screen.draw.filled_rect(Rect((plat.x - camera_x, plat.y), plat.size), plat_color)
 
-
         for spike in spikes:
             original_x = spike.x
             spike.x -= camera_x
@@ -174,7 +173,7 @@ def update():
                     player.on_ground = True
 
         for spike in spikes:
-            spike_rect = Rect(spike.x - 20, spike.y, 40, 20)  
+            spike_rect = Rect(spike.x - 20, spike.y, 40, 20)
             if player_rect.colliderect(spike_rect):
                 if hasattr(sounds, "hit"):
                     sounds.hit.play()
@@ -196,8 +195,11 @@ def update():
                     if hasattr(sounds, "coin"):
                         sounds.coin.play()
 
+        # ✅ Tocar som de vitória
         if collected_keys == TOTAL_KEYS and player.x >= MAP_WIDTH - 100:
             print("Parabéns! Você coletou todas as chaves e finalizou o jogo!")
+            if hasattr(sounds, "win"):
+                sounds.win.play()
             game_state = "menu"
 
         update_animation()
