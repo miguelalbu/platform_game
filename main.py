@@ -1,6 +1,6 @@
 import pgzrun
 from pygame import Rect
-import pygame  # Necessário para o transform.scale funcionar
+import pygame
 
 # Configurações
 WIDTH = 800
@@ -27,7 +27,7 @@ player.idle_index = 0
 player.idle_timer = 0
 player.idle_speed = 30
 
-# Inimigo (zumbi) patrulhando perto da chave no chão
+# Inimigo (zumbi)
 enemy = Actor("zombie/zombie_idle", (1820, HEIGHT - 110))
 enemy.direction = 1
 enemy.speed = 1
@@ -95,29 +95,26 @@ def update_camera():
 
 def draw():
     screen.clear()
-
     if game_state == "menu":
         screen.fill((30, 30, 50))
         screen.draw.text("PLATFORMER", center=(WIDTH//2, 100), fontsize=60, color="white")
-
         for name, rect in buttons.items():
             screen.draw.filled_rect(rect, "orange")
             label = "Music: ON" if name == "music" and music_on else "Music: OFF" if name == "music" else name.capitalize()
             screen.draw.text(label, center=rect.center, fontsize=32, color="black")
-
     elif game_state == "game":
         screen.fill((50, 50, 80))
         screen.draw.filled_rect(Rect((0 - camera_x, HEIGHT - 50), (MAP_WIDTH, 50)), "green")
 
-        # Inimigo
         original_enemy_x = enemy.x
         enemy.x -= camera_x
         enemy.draw()
         enemy.x = original_enemy_x
 
         for plat in platforms:
-            plat_color = "red" if plat in [platforms[-1]] else "brown"
+            plat_color = "brown"
             screen.draw.filled_rect(Rect((plat.x - camera_x, plat.y), plat.size), plat_color)
+
 
         for spike in spikes:
             original_x = spike.x
@@ -130,11 +127,9 @@ def draw():
                 original_x = key.x
                 original_y = key.y
                 key.x -= camera_x
-
                 key_img = key._surf
                 scaled_img = pygame.transform.scale(key_img, (int(key.width * 1.8), int(key.height * 1.8)))
                 screen.blit(scaled_img, (key.x - scaled_img.get_width() // 2, key.y - scaled_img.get_height() // 2))
-
                 key.x = original_x
                 key.y = original_y
 
@@ -143,7 +138,6 @@ def draw():
 
 def update():
     global collected_keys, game_state
-
     if game_state == "game":
         if keyboard.left:
             player.vx = -5
@@ -163,7 +157,6 @@ def update():
         player.vy += 0.5
         player.x += player.vx
         player.y += player.vy
-
         player.x = max(player.width/2, min(player.x, MAP_WIDTH - player.width/2))
 
         if player.y > HEIGHT - 50 - player.height/2:
@@ -171,8 +164,7 @@ def update():
             player.vy = 0
             player.on_ground = True
 
-        player_rect = Rect((player.x - player.width/2, player.y - player.height/2),
-                           (player.width, player.height))
+        player_rect = Rect((player.x - player.width/2, player.y - player.height/2), (player.width, player.height))
 
         for plat in platforms:
             if player_rect.colliderect(plat) and player.vy > 0:
@@ -182,11 +174,18 @@ def update():
                     player.on_ground = True
 
         for spike in spikes:
-            spike_rect = Rect((spike.x, spike.y), spike.size)
+            spike_rect = Rect(spike.x - 20, spike.y, 40, 20)  
             if player_rect.colliderect(spike_rect):
                 if hasattr(sounds, "hit"):
                     sounds.hit.play()
                 reset_player()
+
+        # Colisão com o zumbi
+        enemy_rect = Rect(enemy.x - 20, enemy.y - 40, 40, 80)
+        if player_rect.colliderect(enemy_rect):
+            if hasattr(sounds, "hit"):
+                sounds.hit.play()
+            reset_player()
 
         for key in keys:
             if not hasattr(key, "collected") or not key.collected:
@@ -206,23 +205,17 @@ def update():
         update_camera()
 
 def update_enemy():
-    # Movimento do inimigo
     enemy.x += enemy.direction * enemy.speed
-
-    # Verifica se ultrapassou o limite de patrulha
     if abs(enemy.x - enemy.start_x) >= enemy.range:
-        enemy.direction *= -1  # Inverte direção
-        enemy.flip_x = not enemy.flip_x  # Vira o sprite visualmente
+        enemy.direction *= -1
+        enemy.flip_x = not enemy.flip_x
 
-    # Animação do inimigo
     enemy.timer += 1
     if enemy.timer >= 10:
         enemy.timer = 0
         enemy.walk_index = (enemy.walk_index + 1) % len(enemy.walk_frames)
         enemy.image = enemy.walk_frames[enemy.walk_index]
-
-    enemy._flip_x = enemy.flip_x  # Aplica a virada visual
-
+    enemy._flip_x = enemy.flip_x
 
 def reset_player():
     global collected_keys
@@ -256,7 +249,6 @@ def update_animation():
 
 def on_mouse_down(pos):
     global game_state, music_on
-
     if game_state == "menu":
         if buttons["start"].collidepoint(pos):
             game_state = "game"
