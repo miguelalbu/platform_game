@@ -3,8 +3,6 @@ Venv\Scripts\activate
 
 - Quando está finalizando o jogo com o background on, sound win não toca
 - Mais plataformas para complicar mais, e lógica para o jogo
-- bug espinho e chave
-- Mudar music background
 - 2 Inimigos ou 3 se possível
 - Tecla "Esc" voltar para a interface/game
 - Plaformas quadradas / embaixo os inimigos podendo cair em cima da cabeça deles para matar

@@ -195,9 +195,7 @@ def update():
             if player_rect.colliderect(key_rect):
                 key.collected = True
                 collected_keys += 1
-                if hasattr(sounds, "coin"): 
-                    sounds.coin.set_volume(0.1)
-                    sounds.coin.play()
+                if hasattr(sounds, "coin"): sounds.coin.play()
 
     if collected_keys == TOTAL_KEYS and player.x >= MAP_WIDTH - 100:
         print("Parabéns! Você coletou todas as chaves e finalizou o jogo!")
@@ -286,6 +284,16 @@ def on_start():
     if music_on:
         music.play("background")
         music.set_volume(0.2)
+
+    # Volumes dos efeitos sonoros
+    if hasattr(sounds, "coin"):
+        sounds.coin.set_volume(0.2)
+    if hasattr(sounds, "jump"):
+        sounds.jump.set_volume(0.2)
+    if hasattr(sounds, "hit"):
+        sounds.hit.set_volume(0.2)
+    if hasattr(sounds, "win"):
+        sounds.win.set_volume(0.4)
 
 on_start()
 pgzrun.go()
