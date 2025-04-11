@@ -41,6 +41,13 @@ enemy.walk_index = 0
 enemy.timer = 0
 enemy.flip_x = enemy.direction < 0
 
+
+END_OF_MAPA_X = MAP_WIDTH - 110
+END_OF_MAPA_Y = HEIGHT - 50 - 16  # altura considerando o chão
+# Adicionando bandeira
+flag = Actor("items/flag_win")
+flag.pos = (END_OF_MAPA_X, END_OF_MAPA_Y)
+
 # Plataformas
 platforms = [
     Rect((0, HEIGHT - 50), (MAP_WIDTH, 50)),
@@ -83,6 +90,7 @@ keys = [
 for key in keys:
     key.width *= 1.5
     key.height *= 1.5
+    key.collected = False
 
 collected_keys = 0
 TOTAL_KEYS = len(keys)
@@ -114,6 +122,12 @@ def draw():
         for plat in platforms:
             screen.draw.filled_rect(Rect((plat.x - camera_x, plat.y), plat.size), "brown")
 
+        # Bandeira
+        original_flag_x = flag.x
+        flag.x -= camera_x
+        flag.draw()
+        flag.x = original_flag_x
+
         original_enemy_x = enemy.x
         enemy.x -= camera_x
         enemy.draw()
@@ -126,7 +140,7 @@ def draw():
             spike.x = original_x
 
         for key in keys:
-            if not hasattr(key, "collected") or not key.collected:
+            if not key.collected:
                 original_x = key.x
                 key.x -= camera_x
                 key.draw()
@@ -138,21 +152,22 @@ def draw():
         for i in range(life):
             screen.blit("items/heart", (10 + 40 * i, 50))
 
+
 def update():
     global collected_keys, game_state, life
     if game_state != "game":
         return
 
-    if keyboard.left:
+    if keyboard.left or keyboard.a:
         player.vx = -5
         player.facing = "left"
-    elif keyboard.right:
+    elif keyboard.right or keyboard.d:
         player.vx = 5
         player.facing = "right"
     else:
         player.vx = 0
 
-    if keyboard.up and player.on_ground:
+    if (keyboard.up or keyboard.w or keyboard.space) and player.on_ground:
         player.vy = -15
         player.on_ground = False
         if hasattr(sounds, "jump"): sounds.jump.play()
@@ -190,17 +205,24 @@ def update():
         return
 
     for key in keys:
-        if not hasattr(key, "collected") or not key.collected:
-            key_rect = Rect((key.x - key.width / 2, key.y - key.height / 2), (key.width, key.height))
+        if not key.collected:
+            key_rect = Rect((key.x - 10, key.y - 10), (20, 20))  # hitbox menor
+
             if player_rect.colliderect(key_rect):
                 key.collected = True
                 collected_keys += 1
                 if hasattr(sounds, "coin"): sounds.coin.play()
 
-    if collected_keys == TOTAL_KEYS and player.x >= MAP_WIDTH - 100:
-        print("Parabéns! Você coletou todas as chaves e finalizou o jogo!")
-        if hasattr(sounds, "win"): sounds.win.play()
-        game_state = "menu"
+        flag_rect = Rect((flag.x - flag.width / 2, flag.y - flag.height / 2), (flag.width, flag.height))
+        if player_rect.colliderect(flag_rect):
+            if collected_keys == TOTAL_KEYS:
+                
+                if hasattr(sounds, "win"): sounds.win.play()
+                game_state = "menu"
+                reset_game()
+            else:
+                print("🚫 You need all keys to complete the game!")
+
 
     update_animation()
     update_enemy()
@@ -285,7 +307,6 @@ def on_start():
         music.play("background")
         music.set_volume(0.2)
 
-    # Volumes dos efeitos sonoros
     if hasattr(sounds, "coin"):
         sounds.coin.set_volume(0.2)
     if hasattr(sounds, "jump"):
