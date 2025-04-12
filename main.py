@@ -246,8 +246,6 @@ def update():
                 if hasattr(sounds, "win"): sounds.win.play()
                 game_state = "menu"
                 reset_game()
-            else:
-                print("🚫 You need all keys to complete the game!")
 
 
     update_animation()
@@ -310,7 +308,6 @@ def lose_life():
     global life, game_state
     life -= 1
     if life <= 0:
-        print("Game Over!")
         game_state = "menu"
         reset_game()
     else:
@@ -349,7 +346,6 @@ def on_mouse_down(pos):
             else:
                 music.stop()
         elif buttons["exit"].collidepoint(pos):
-            print("Saindo do jogo...")
             exit()
 
 def on_start():
