@@ -3,7 +3,7 @@ from pygame import Rect
 
 WIDTH = 800
 HEIGHT = 600
-TITLE = "Jogo Platformer"
+TITLE = "Game Platformer"
 MAP_WIDTH = 4000
 
 game_state = "menu"
@@ -118,7 +118,7 @@ def draw():
     screen.clear()
     if game_state == "menu":
         screen.fill((30, 30, 50))
-        screen.draw.text("PLATFORMER", center=(WIDTH//2, 100), fontsize=60, color="white")
+        screen.draw.text("PLATFORMER GAME", center=(WIDTH//2, 100), fontsize=60, color="white")
         for name, rect in buttons.items():
             screen.draw.filled_rect(rect, "orange")
             label = "Music: ON" if name == "music" and music_on else "Music: OFF" if name == "music" else name.capitalize()
@@ -162,7 +162,7 @@ def draw():
                 key.x = original_x
 
         screen.blit(player.image, (player.x - player.width / 2 - camera_x, player.y - player.height / 2))
-        screen.draw.text(f"Chaves: {collected_keys}/{TOTAL_KEYS}", topleft=(10, 10), fontsize=30, color="white")
+        screen.draw.text(f"Keys: {collected_keys}/{TOTAL_KEYS}", topleft=(10, 10), fontsize=30, color="white")
 
         for i in range(life):
             screen.blit("items/heart", (10 + 40 * i, 50))
