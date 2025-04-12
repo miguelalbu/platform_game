@@ -1,22 +1,19 @@
 import pgzrun
 from pygame import Rect
 
-# Configurações
 WIDTH = 800
 HEIGHT = 600
 TITLE = "Jogo Platformer"
 MAP_WIDTH = 4000
 
-# Estado do jogo
 game_state = "menu"
 camera_x = 0
 music_on = True
 
-# Vida
 MAX_LIFE = 3
 life = MAX_LIFE
 
-# Jogador
+
 player = Actor("player/player_idle", (100, HEIGHT - 100))
 player.vx = 0
 player.vy = 0
@@ -30,7 +27,7 @@ player.idle_index = 0
 player.idle_timer = 0
 player.idle_speed = 30
 
-# Inimigo (zumbi)
+
 enemy = Actor("zombie/zombie_idle", (1820, HEIGHT - 110))
 enemy.direction = 1
 enemy.speed = 1
@@ -53,12 +50,12 @@ spider.flip_x = spider.direction < 0
 
 
 END_OF_MAPA_X = MAP_WIDTH - 110
-END_OF_MAPA_Y = HEIGHT - 50 - 16  # altura considerando o chão
-# Adicionando bandeira
+END_OF_MAPA_Y = HEIGHT - 50 - 16 
+
 flag = Actor("items/flag_win")
 flag.pos = (END_OF_MAPA_X, END_OF_MAPA_Y)
 
-# Plataformas
+
 platforms = [
     Rect((0, HEIGHT - 50), (MAP_WIDTH, 50)),
     Rect((200, HEIGHT - 150), (150, 20)),
@@ -78,7 +75,7 @@ platforms = [
     Rect((3550, HEIGHT - 310), (120, 20)),
 ]
 
-# Espinhos
+
 spikes = [
     Actor("items/thorns_plat", (3550 + 60, HEIGHT - 310 - 20)),
     Actor("items/thorns_plat", (700 + 75, HEIGHT - 300 - 20)),
@@ -86,7 +83,7 @@ spikes = [
     Actor("items/thorns_plat", (3050 + 75, HEIGHT - 170 - 20)),
 ]
 
-# Chaves colecionáveis
+
 keys = [
     Actor("items/key_plat", (250, HEIGHT - 170)),
     Actor("items/key_plat", (420, HEIGHT - 240)),
@@ -106,7 +103,7 @@ for key in keys:
 collected_keys = 0
 TOTAL_KEYS = len(keys)
 
-# Botões do menu
+
 buttons = {
     "start": Rect((WIDTH//2 - 100, 200), (200, 50)),
     "music": Rect((WIDTH//2 - 100, 270), (200, 50)),
@@ -133,7 +130,7 @@ def draw():
         for plat in platforms:
             screen.draw.filled_rect(Rect((plat.x - camera_x, plat.y), plat.size), "brown")
 
-        # Bandeira
+        
         original_flag_x = flag.x
         flag.x -= camera_x
         flag.draw()
@@ -232,8 +229,7 @@ def update():
 
     for key in keys:
         if not key.collected:
-            key_rect = Rect((key.x - 10, key.y - 10), (20, 20))  # hitbox menor
-
+            key_rect = Rect((key.x - 10, key.y - 10), (20, 20))
             if player_rect.colliderect(key_rect):
                 key.collected = True
                 collected_keys += 1
