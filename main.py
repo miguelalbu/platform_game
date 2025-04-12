@@ -41,6 +41,16 @@ enemy.walk_index = 0
 enemy.timer = 0
 enemy.flip_x = enemy.direction < 0
 
+spider = Actor("spider/spider", (1100, HEIGHT - 77))
+spider.direction = 1
+spider.speed = 1
+spider.range = 200
+spider.start_x = spider.x
+spider.walk_frames = ["spider/spider_walk1", "spider/spider_walk2"]
+spider.walk_index = 0
+spider.time = 0
+spider.flip_x = spider.direction < 0
+
 
 END_OF_MAPA_X = MAP_WIDTH - 110
 END_OF_MAPA_Y = HEIGHT - 50 - 16  # altura considerando o chão
@@ -85,7 +95,8 @@ keys = [
     Actor("items/key_plat", (1320, HEIGHT - 270)),
     Actor("items/key_plat", (1820, HEIGHT - 90)),
     Actor("items/key_plat", (2320, HEIGHT - 200)),
-    Actor("items/key_plat", (2850, HEIGHT - 120))
+    Actor("items/key_plat", (2850, HEIGHT - 120)),
+    Actor("items/key_plat", (1100, HEIGHT - 100))
 ]
 for key in keys:
     key.width *= 1.5
@@ -127,6 +138,13 @@ def draw():
         flag.x -= camera_x
         flag.draw()
         flag.x = original_flag_x
+
+        original_spider_x = spider.x
+        spider.x -= camera_x
+        spider.draw()
+        spider.x = original_spider_x
+
+
 
         original_enemy_x = enemy.x
         enemy.x -= camera_x
@@ -198,6 +216,14 @@ def update():
             lose_life()
             return
 
+    spider_rect = Rect(spider.x - 20, spider.y - 20, 40, 40)
+    if player_rect.colliderect(spider_rect):
+        if hasattr(sounds, "hit"): sounds.hit.play()
+        lose_life()
+        return
+
+
+
     enemy_rect = Rect(enemy.x - 20, enemy.y - 40, 40, 80)
     if player_rect.colliderect(enemy_rect):
         if hasattr(sounds, "hit"): sounds.hit.play()
@@ -226,6 +252,7 @@ def update():
 
     update_animation()
     update_enemy()
+    update_spider()
     update_camera()
 
 def update_enemy():
@@ -240,6 +267,29 @@ def update_enemy():
         enemy.walk_index = (enemy.walk_index + 1) % len(enemy.walk_frames)
         enemy.image = enemy.walk_frames[enemy.walk_index]
     enemy._flip_x = enemy.flip_x
+
+def update_spider():
+    spider.x += spider.direction * spider.speed
+    if abs(spider.x - spider.start_x) >= spider.range:
+        spider.direction *= -1
+        spider.flip_x = not spider.flip_x
+
+    spider.time += 1
+    if spider.time >= 10:
+        spider.time = 0
+        spider.walk_index = (spider.walk_index + 1) % len(spider.walk_frames)
+        spider.image = spider.walk_frames[spider.walk_index]
+    spider._flip_x = spider.flip_x
+
+
+    spider.time += 1
+    if spider.time >= 10:
+        spider.time = 0
+        spider.walk_index = (spider.walk_index + 1) % len(spider.walk_frames)
+        spider.image = spider.walk_frames[spider.walk_index]
+    spider._flip_x = spider.flip_x
+
+
 
 def reset_player_position():
     player.x = 100
